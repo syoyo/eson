@@ -16,7 +16,6 @@ Very unstable. Spec and API will change in the future.
 
 ## Quick tutorial
 
-    $ premake4 gmake
     $ make
     $ ./eson_test
 
