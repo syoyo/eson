@@ -39,6 +39,7 @@ element      | := | "\x01" key double         | floating point value
              | :  | "\x05" key int64 document | Array value(not yet implemented)
              | :  | "\x06" key binary         | Binary value
              | :  | "\x07" key document       | Object value
+string       | := | N chars                   | Number of chars(int64) + char(byte) array
 binary       | := | N bytes                   | Number of bytes(int64) + byte array
  
 
