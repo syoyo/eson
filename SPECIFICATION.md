@@ -2,7 +2,7 @@
 
 ## Version
 
-0.9
+0.1.0 (Jul 2013)
 
 ## Overview
 
@@ -30,10 +30,8 @@ double	| 8      | 64-bit IEEE 754 floating point
 symbol       |    | expression                | comment
 -------------|----|---------------------------|-------------------------------------------------------------------
 document     | := | int64 elems               | ESON document. The int64 is total number of bytes in the document.
-             |    |                           |
 elems        | := | element elems             | Sequence of elements
              | :  | nil                       | 
-             |    |                           | 
 element      | := | "\x01" key double         | floating point value
              | :  | "\x02" key int64          | integer value
              | :  | "\x03" key byte           | bool value
@@ -41,7 +39,6 @@ element      | := | "\x01" key double         | floating point value
              | :  | "\x05" key int64 document | Array value(not yet implemented)
              | :  | "\x06" key binary         | Binary value
              | :  | "\x07" key document       | Object value
-             |    |                           | 
 binary       | := | N bytes                   | Number of bytes(int64) + byte array
  
 
