@@ -22,7 +22,7 @@ Very unstable. Spec and API will change in the future.
 
 ## Specification
 
-See (SPECIFICATION.md)
+See [SPECIFICATION.md](SPECIFICATION.md)
 
 ## Design and implementation references
 
