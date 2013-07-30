@@ -1,8 +1,8 @@
 # ESON, Exa-scale Storage Object Notation
 
-ESON is simple but powerful schema-less binary data format designed to handle Exa-scale data. Example includes graphics(e.g. geometry and textures) and scientific application.
+ESON is simple but powerful schema-less binary data format designed to handle Exa-scale data. Example includes graphics(e.g. geometry, volume and textures) and may also applicable for in-memory database and scientific data.
 
-ESON is designed to handle large-scale data efficiently for comming NVM(non-volatile memory) or SCM(storage-class memory) era.
+ESON is also designed to handle large-scale data efficiently for comming NVM(non-volatile memory) or SCM(storage-class memory) era.
 
 C++ API is primarily provided.
 
