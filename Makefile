@@ -20,4 +20,4 @@ eson_test: libeson.a main.o
 	$(CXX) $(CXXFLAGS) -o eson_test main.o -L./ -leson
 
 clean:
-	rm -rf eson.o eson_test libeson.a
+	rm -rf main.o eson.o eson_test libeson.a
