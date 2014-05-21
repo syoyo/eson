@@ -215,7 +215,7 @@ class Value
       static Value null_value;
       assert(IsArray());
       assert(idx >= 0);
-      return (idx < array_->size()) ? (*array_)[idx] : null_value;
+      return ((uint64_t)idx < array_->size()) ? (*array_)[idx] : null_value;
     }
 
     // Lookup value from a key-value pair

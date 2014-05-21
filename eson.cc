@@ -33,7 +33,8 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 
 #ifdef _WIN32
-#error TODO
+#include <Windows.h> // File mapping
+//#error TODO
 #else
 #include <sys/stat.h>
 #include <sys/mman.h>
