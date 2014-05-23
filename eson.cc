@@ -128,12 +128,12 @@ Value::Serialize(uint8_t* p) const
 }
 
 // Forward decl.
-static uint8_t* ParseElement(std::stringstream& err, Object& o, uint8_t* p);
+static const uint8_t* ParseElement(std::stringstream& err, Object& o, const uint8_t* p);
 
-static uint8_t* ReadKey(
-  std::string& key, uint8_t* p)
+static const uint8_t* ReadKey(
+  std::string& key, const uint8_t* p)
 {
-  key = std::string(reinterpret_cast<char*>(p));
+  key = std::string(reinterpret_cast<const char*>(p));
   //printf("key = [ %s ]\n", key.c_str());
 
   //printf("key len = %d\n", (int)key.length());
@@ -144,10 +144,10 @@ static uint8_t* ReadKey(
   return p;
 }
 
-static uint8_t* ReadFloat64(
-  double& v, uint8_t* p)
+static const uint8_t* ReadFloat64(
+  double& v, const uint8_t* p)
 {
-  v = *(reinterpret_cast<double*>(p));
+  v = *(reinterpret_cast<const double*>(p));
   p += sizeof(double);
 
   //printf("fp64 = %f ]\n", v);
@@ -155,10 +155,10 @@ static uint8_t* ReadFloat64(
   return p;
 }
 
-static uint8_t* ReadInt64(
-  int64_t& v, uint8_t* p)
+static const uint8_t* ReadInt64(
+  int64_t& v, const uint8_t* p)
 {
-  v = *(reinterpret_cast<int64_t*>(p));
+  v = *(reinterpret_cast<const int64_t*>(p));
   p += sizeof(int64_t);
 
   //printf("int64 = %lld ]\n", v);
@@ -166,16 +166,16 @@ static uint8_t* ReadInt64(
   return p;
 }
 
-static uint8_t* ReadString(
-  std::string& s, uint8_t* p)
+static const uint8_t* ReadString(
+  std::string& s, const uint8_t* p)
 {
   // N + string data.
-  int64_t n = *(reinterpret_cast<int64_t*>(p));
+  int64_t n = *(reinterpret_cast<const int64_t*>(p));
   p += sizeof(int64_t);
 
   assert(n >= 0);
 
-  s = std::string(reinterpret_cast<char*>(p), n);
+  s = std::string(reinterpret_cast<const char*>(p), n);
   p += n;
 
   //printf("str = %s\n", s.c_str());
@@ -183,11 +183,11 @@ static uint8_t* ReadString(
   return p;
 }
 
-static uint8_t* ReadBinary(
-  uint8_t*& b, int64_t& n, uint8_t* p)
+static const uint8_t* ReadBinary(
+  const uint8_t*& b, int64_t& n, const uint8_t* p)
 {
   // N + bin data.
-  n = *(reinterpret_cast<int64_t*>(p));
+  n = *(reinterpret_cast<const int64_t*>(p));
   p += sizeof(int64_t);
 
   assert(n >= 0);
@@ -201,31 +201,31 @@ static uint8_t* ReadBinary(
   return p;
 }
 
-static uint8_t* ReadObject(
-  Object& o, uint8_t* p)
+static const const uint8_t* ReadObject(
+  Object& o, const uint8_t* p)
 {
   // N + object data.
-  int64_t n = *(reinterpret_cast<int64_t*>(p));
+  int64_t n = *(reinterpret_cast<const int64_t*>(p));
   p += sizeof(int64_t);
 
   assert(n >= 0);
 
   std::stringstream ss;
-  uint8_t* ptr = ParseElement(ss, o, p);
+  const uint8_t* ptr = ParseElement(ss, o, p);
 
   return ptr;
 }
 
-static uint8_t*
+static const uint8_t*
 ParseElement(
   std::stringstream& err,
   Object& o,
-  uint8_t* p)
+  const uint8_t* p)
 {
-  uint8_t* ptr = p;
+  const uint8_t* ptr = p;
 
   // Read tag;
-  Type type = (Type)*(reinterpret_cast<char*>(ptr));
+  Type type = (Type)*(reinterpret_cast<const char*>(ptr));
   ptr++;
   //printf("[Parse] ty = %d\n", type); 
 
@@ -256,7 +256,7 @@ ParseElement(
     break;
   case BINARY_TYPE:
     {
-      uint8_t* bin_ptr;
+      const uint8_t* bin_ptr;
       int64_t  bin_size;
       ptr = ReadBinary(bin_ptr, bin_size, ptr);
       //for (int i = 0; i < bin_size; i++) {
@@ -282,18 +282,18 @@ ParseElement(
   return ptr;
 }
 
-std::string eson::Parse(Value& v, uint8_t* p)
+std::string eson::Parse(Value& v, const uint8_t* p)
 {
   std::stringstream err;
 
-  uint8_t* ptr = p;
+  const uint8_t* ptr = p;
 
   //
   // == toplevel element
   //
 
   // Read total size.
-  int64_t sz = *(reinterpret_cast<int64_t*>(ptr));
+  int64_t sz = *(reinterpret_cast<const int64_t*>(ptr));
   ptr += sizeof(int64_t);
   //printf("[Parse] total size = %lld\n", sz);
   assert(sz > 0);

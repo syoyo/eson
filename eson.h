@@ -260,7 +260,7 @@ typedef Value::Binary   Binary;
 
 // Deserialize data from memory 'p'.
 // Returns error string. Empty if success.
-std::string Parse(Value& v, uint8_t* p);
+std::string Parse(Value& v, const uint8_t* p);
 
 class ESON
 {
