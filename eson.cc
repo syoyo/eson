@@ -201,7 +201,7 @@ static const uint8_t* ReadBinary(
   return p;
 }
 
-static const const uint8_t* ReadObject(
+static const uint8_t* ReadObject(
   Object& o, const uint8_t* p)
 {
   // N + object data.

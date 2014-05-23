@@ -52,7 +52,7 @@ ESONTest()
   fclose(fp);
 
   eson::Value ret;
-  std::string err = eson::Parse(ret, buf);
+  std::string err = eson::Parse(ret, (const uint8_t*)buf);
   if (!err.empty()) {
     std::cout << "err:" << err << std::endl;
   }
