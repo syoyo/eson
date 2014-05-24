@@ -241,6 +241,13 @@ class Value
       Object::const_iterator it = object_->find(key);
       return (it != object_->end()) ? it->second : null_value;
     }
+
+    // Valid only for object type.
+    bool Has(const std::string& key) const {
+      if (!IsObject()) return false;
+      Object::const_iterator it = object_->find(key);
+      return (it != object_->end()) ? true : false;
+    }
     
 
     // Serialize data to memory 'p'.
