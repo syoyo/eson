@@ -73,6 +73,13 @@ ESONTest()
     printf("    bin[%d] = %d\n", i, bin.ptr[i]);
   } 
 
+  if (ret.Get("bin1").IsBinary()) {
+    eson::Binary bin1 = ret.Get("bin1").Get<eson::Binary>();
+    printf("bin1.size = %d\n", (int)bin1.size);
+    //assert(bin1.size == 0);
+  }
+  assert(ret.Get("bin1").IsBinary() == false);
+
   delete buf;
 }
 

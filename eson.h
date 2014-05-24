@@ -40,7 +40,7 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace eson {
 
 typedef enum {
-  INVALID_TYPE    = 0,
+  NULL_TYPE       = 0,
   FLOAT64_TYPE    = 1,
   INT64_TYPE      = 2,
   BOOL_TYPE       = 3,
@@ -76,7 +76,7 @@ class Value
     };
 
   public:
-    Value() : type_(INVALID_TYPE), dirty_(true) {
+    Value() : type_(NULL_TYPE), dirty_(true) {
     }
 
     explicit Value(bool b) : type_(BOOL_TYPE), dirty_(false) {
@@ -196,6 +196,22 @@ class Value
 
     const char Type() const {
       return (const char)type_;
+    }
+
+    const bool IsInt64() const {
+      return (type_ == FLOAT64_TYPE);
+    }
+
+    const bool IsFloat64() const {
+      return (type_ == FLOAT64_TYPE);
+    }
+
+    const bool IsString() const {
+      return (type_ == STRING_TYPE);
+    }
+
+    const bool IsBinary() const {
+      return (type_ == BINARY_TYPE);
     }
 
     const bool IsArray() const {
