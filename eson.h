@@ -180,6 +180,8 @@ class Value
           assert(0);
           break;
       }
+      assert(0);
+      return -1; // Never come here.
     }
 
 
