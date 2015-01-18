@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2013, Syoyo Fujita.
+Copyright (c) 2013-2015, Light Transport Entertainment Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -51,8 +51,6 @@ using namespace eson;
 uint8_t*
 Value::Serialize(uint8_t* p) const
 {
-  //printf("ty = %d\n", type_);
-
   uint8_t* ptr = p;
   switch (type_) {
   case FLOAT64_TYPE:
@@ -69,10 +67,8 @@ Value::Serialize(uint8_t* p) const
     {
       // len(64bit) + string
       (*(reinterpret_cast<int64_t*>(ptr))) = size_;
-      //printf("//str data len = %d\n", (int)size_);
       ptr += sizeof(int64_t);
-      memcpy(ptr, string_->c_str(), size_);
-      //printf("//str val = %s\n", string_->c_str());
+      memcpy(ptr, string_.c_str(), size_);
       ptr += size_;
     } 
     break;
@@ -80,9 +76,8 @@ Value::Serialize(uint8_t* p) const
     {
       // len(64bit) + bindata
       (*(reinterpret_cast<int64_t*>(ptr))) = size_;
-      //printf("//bin data len = %d\n", (int)size_);
       ptr += sizeof(int64_t);
-      memcpy(ptr, binary_->ptr, size_);
+      memcpy(ptr, binary_.ptr, size_);
       ptr += size_;
     } 
     break;
@@ -91,14 +86,13 @@ Value::Serialize(uint8_t* p) const
 
       // First compute object size
       int64_t object_size = Size();
-      //printf("obj size = %lld\n", object_size);
 
       (*(reinterpret_cast<int64_t*>(ptr))) = size_;
       ptr += sizeof(int64_t);
 
       // Serialize key-value pairs.
-      for (Object::const_iterator it = object_->begin();
-           it != object_->end();
+      for (Object::const_iterator it = object_.begin();
+           it != object_.end();
            ++it) {
 
         // Emit type tag.
@@ -109,7 +103,6 @@ Value::Serialize(uint8_t* p) const
         // Emit key
         const std::string& key = it->first;
         memcpy(ptr, key.c_str(), key.size());
-        //printf("[[key len = %d\n", (int)key.size());
         ptr += key.size();
         (*(reinterpret_cast<char*>(ptr))) = '\0'; // null terminate
         ptr++;
@@ -134,10 +127,6 @@ static const uint8_t* ReadKey(
   std::string& key, const uint8_t* p)
 {
   key = std::string(reinterpret_cast<const char*>(p));
-  //printf("key = [ %s ]\n", key.c_str());
-
-  //printf("key len = %d\n", (int)key.length());
-  //printf("str len = %d\n", (int)strlen((char*)p));
 
   p += key.length() + 1; // + '\0'
 
@@ -150,8 +139,6 @@ static const uint8_t* ReadFloat64(
   v = *(reinterpret_cast<const double*>(p));
   p += sizeof(double);
 
-  //printf("fp64 = %f ]\n", v);
-
   return p;
 }
 
@@ -160,8 +147,6 @@ static const uint8_t* ReadInt64(
 {
   v = *(reinterpret_cast<const int64_t*>(p));
   p += sizeof(int64_t);
-
-  //printf("int64 = %lld ]\n", v);
 
   return p;
 }
@@ -178,8 +163,6 @@ static const uint8_t* ReadString(
   s = std::string(reinterpret_cast<const char*>(p), n);
   p += n;
 
-  //printf("str = %s\n", s.c_str());
-
   return p;
 }
 
@@ -195,8 +178,6 @@ static const uint8_t* ReadBinary(
   // Just returns pointer address.
   b = p;
   p += n;
-
-  //printf("bin len = %d\n", (int)n);
 
   return p;
 }
@@ -227,7 +208,6 @@ ParseElement(
   // Read tag;
   Type type = (Type)*(reinterpret_cast<const char*>(ptr));
   ptr++;
-  //printf("[Parse] ty = %d\n", type); 
 
   std::string key;
   ptr = ReadKey(key, ptr);
@@ -259,9 +239,6 @@ ParseElement(
       const uint8_t* bin_ptr;
       int64_t  bin_size;
       ptr = ReadBinary(bin_ptr, bin_size, ptr);
-      //for (int i = 0; i < bin_size; i++) {
-      //  printf("b[%d] = %d\n", i, bin_ptr[i]);
-      //}
       o[key] = Value(bin_ptr, bin_size);
     }
     break;
@@ -295,7 +272,6 @@ std::string eson::Parse(Value& v, const uint8_t* p)
   // Read total size.
   int64_t sz = *(reinterpret_cast<const int64_t*>(ptr));
   ptr += sizeof(int64_t);
-  //printf("[Parse] total size = %lld\n", sz);
   assert(sz > 0);
 
   Object obj;
@@ -304,7 +280,6 @@ std::string eson::Parse(Value& v, const uint8_t* p)
   while (read_size < sz) {
     ptr = ParseElement(err, obj, ptr);
     read_size = ptr - p;
-    //printf("read_size = %d, total = %d\n", (int)read_size, (int)sz);
   }
 
   v = Value(obj);

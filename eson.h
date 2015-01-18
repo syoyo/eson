@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2013, Light Transport Entertainment Inc.
+Copyright (c) 2013-2015, Light Transport Entertainment Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -65,15 +65,16 @@ class Value
     int               type_;    // Data type
     mutable uint64_t  size_;    // Data size
     mutable bool      dirty_;
-    union {
+
+    //union {
       bool                boolean_;
       int64_t             int64_;
       double              float64_;
-      std::string*        string_;
-      Binary*             binary_;
-      Array*              array_;
-      Object*             object_;
-    };
+      std::string         string_;
+      Binary              binary_;
+      Array               array_;
+      Object              object_;
+    //};
 
   public:
     Value() : type_(NULL_TYPE), dirty_(true) {
@@ -92,21 +93,21 @@ class Value
       size_ = 8;
     }
     explicit Value(const std::string& s) : type_(STRING_TYPE), dirty_(false) {
-      string_ = new std::string(s);
-      size_ = string_->size();
+      string_ = std::string(s);
+      size_ = string_.size();
     }
     explicit Value(const uint8_t* p, uint64_t n) : type_(BINARY_TYPE), dirty_(false) {
-      binary_ = new Binary;
-      binary_->ptr = p; // Just save a pointer.
-      binary_->size = n;
+      binary_ = Binary();
+      binary_.ptr = p; // Just save a pointer.
+      binary_.size = n;
       size_   = n;
     }
     explicit Value(const Array& a) : type_(ARRAY_TYPE), dirty_(true) {
-      array_ = new Array(a);
+      array_ = Array(a);
       size_  = ComputeArraySize();
     }
     explicit Value(const Object& o) : type_(OBJECT_TYPE), dirty_(true) {
-      object_ = new Object(o);
+      object_ = Object(o);
       size_ = ComputeObjectSize();
     }
     ~Value() {};
@@ -117,16 +118,16 @@ class Value
 
       int64_t array_size = 0;
 
-      assert(array_->size() > 0);
+      assert(array_.size() > 0);
 
-      char base_element_type = (*array_)[0].Type();
+      char base_element_type = array_[0].Type();
 
       //
       // Elements in the array must be all same type.
       //
 
-      for (size_t i = 0; i < array_->size(); i++) {
-        char element_type = (*array_)[i].Type();
+      for (size_t i = 0; i < array_.size(); i++) {
+        char element_type = array_[i].Type();
         assert(base_element_type == element_type);
         // @todo
         assert(0);
@@ -141,14 +142,12 @@ class Value
 
       int64_t object_size = 0;
 
-      for (Object::const_iterator it = object_->begin();
-           it != object_->end();
+      for (Object::const_iterator it = object_.begin();
+           it != object_.end();
            ++it) {
         const std::string& key = it->first;
         int64_t key_len = key.length() + 1; // + '\0'
         int64_t data_len = it->second.ComputeSize(); 
-        //printf("key len = %lld\n", key_len);
-        //printf("data len = %lld\n", data_len);
         object_size += key_len + data_len + 1; // +1 = tag size.
       }
       
@@ -165,7 +164,7 @@ class Value
           return 8;
           break;
         case STRING_TYPE:
-          return string_->size() + sizeof(int64_t); // N + str data 
+          return string_.size() + sizeof(int64_t); // N + str data 
           break;
         case BINARY_TYPE:
           return size_ + sizeof(int64_t); // N + bin data
@@ -200,8 +199,12 @@ class Value
       return (const char)type_;
     }
 
+    const bool IsBool() const {
+      return (type_ == BOOL_TYPE);
+    }
+
     const bool IsInt64() const {
-      return (type_ == FLOAT64_TYPE);
+      return (type_ == INT64_TYPE);
     }
 
     const bool IsFloat64() const {
@@ -233,22 +236,41 @@ class Value
       static Value null_value;
       assert(IsArray());
       assert(idx >= 0);
-      return ((uint64_t)idx < array_->size()) ? (*array_)[idx] : null_value;
+      return ((uint64_t)idx < array_.size()) ? array_[idx] : null_value;
     }
 
     // Lookup value from a key-value pair
     const Value& Get(const std::string& key) const {
       static Value null_value;
       assert(IsObject());
-      Object::const_iterator it = object_->find(key);
-      return (it != object_->end()) ? it->second : null_value;
+      Object::const_iterator it = object_.find(key);
+      return (it != object_.end()) ? it->second : null_value;
+    }
+
+    size_t ArrayLen() const {
+      if (!IsArray()) return 0;
+      return array_.size();
     }
 
     // Valid only for object type.
     bool Has(const std::string& key) const {
       if (!IsObject()) return false;
-      Object::const_iterator it = object_->find(key);
-      return (it != object_->end()) ? true : false;
+      Object::const_iterator it = object_.find(key);
+      return (it != object_.end()) ? true : false;
+    }
+
+    // List keys
+    std::vector<std::string> Keys() const {
+      std::vector<std::string> keys;
+      if (!IsObject()) return keys; // empty
+
+      for (Object::const_iterator it = object_.begin();
+           it != object_.end();
+           ++it) {
+        keys.push_back(it->first);
+      }
+
+      return keys;
     }
     
 
@@ -277,10 +299,10 @@ typedef Value::Binary   Binary;
   GET(bool, boolean_)
   GET(double, float64_)
   GET(int64_t, int64_)
-  GET(std::string, *string_)
-  GET(Binary, *binary_)
-  GET(Array, *array_)
-  GET(Object, *object_)
+  GET(std::string, string_)
+  GET(Binary, binary_)
+  GET(Array, array_)
+  GET(Object, object_)
 #undef GET
 
 // Deserialize data from memory 'p'.

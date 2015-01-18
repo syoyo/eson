@@ -8,6 +8,7 @@ C++ API is primarily provided.
 
 # Version
 
+0.2.0 (Jan 2015)
 0.1.0 (Jul 2013)
 
 # Status
