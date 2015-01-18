@@ -2,7 +2,7 @@
 
 ## Version
 
-0.1.0 (Jul 2013)
+0.2.0 (Jan 2015)
 
 ## Overview
 
