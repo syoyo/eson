@@ -109,7 +109,7 @@ ESONTest()
 ## Example in JavaScript(node.js)
 
 ```
-var eson = require('../../eson.js');
+var eson = require('eson-binary');
 var fs = require('fs');
 
 if (process.argv.length < 3) {
