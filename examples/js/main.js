@@ -1,7 +1,7 @@
 //
 // Read ESON file in Node.js 
 //
-var eson = require('../../eson.js');
+var eson = require('../../eson-binary.js');
 var fs = require('fs');
 
 if (process.argv.length < 3) {

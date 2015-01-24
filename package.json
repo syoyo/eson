@@ -1,8 +1,8 @@
 {
-  "name": "eson",
+  "name": "eson-binary",
   "version": "0.2.0",
   "description": "JS binding for ESON",
-  "main": "eson.js",
+  "main": "eson-binary.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
