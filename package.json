@@ -1,0 +1,14 @@
+{
+  "name": "eson",
+  "version": "0.2.0",
+  "description": "JS binding for ESON",
+  "main": "eson.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Syoyo Fujita <syoyo@lighttransport.com>",
+  "license": "BSD",
+  "dependencies": {
+    "node-int64": "^0.3.3"
+  }
+}
