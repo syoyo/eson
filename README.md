@@ -129,6 +129,7 @@ console.log(b)
 * [ ] Efficiently serialize key table for better search performance.
 * [ ] Make API Zero-Copy to reduce memory.
 * [ ] Add serialize API in JavaScript API.
+* [ ] Support 2GB+ size in JavaScript API.
 
 ## Compression
 
