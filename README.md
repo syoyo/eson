@@ -34,7 +34,7 @@ ESON C++ API is strongly affected by
 
 * picojson https://github.com/kazuho/picojson
 
-## Example
+## Example in C++
 
 ```
 #include "eson.h"
@@ -106,10 +106,29 @@ ESONTest()
 }
 ```
 
+## Example in JavaScript(node.js)
+
+```
+var eson = require('../../eson.js');
+var fs = require('fs');
+
+if (process.argv.length < 3) {
+  console.log("needs input.eson");
+  process.exit(-1);
+}
+
+var buf = fs.readFileSync(process.argv[2])
+var b = eson.parse(buf);
+
+console.log(b)
+```
+
+
 ## TODO
 
-* Efficiently serialize key table for better search performance.
-* Make API Zero-Copy to reduce memory.
+* [ ] Efficiently serialize key table for better search performance.
+* [ ] Make API Zero-Copy to reduce memory.
+* [ ] Add serialize API in JavaScript API.
 
 ## Compression
 
@@ -124,7 +143,7 @@ Syoyo Fujita(syoyo@lighttransport.com)
 
 ## License
 
-ESON C++ API library is licensed under 3-clause BSD license.
+ESON C++ API and JavaScript library is licensed under 3-clause BSD license.
 
 ### Third-party licenses
 
