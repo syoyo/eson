@@ -8,6 +8,7 @@ C++ API is primarily provided.
 
 # Version
 
+0.3.0 (Mar 2015)  Initial support of ARRAY in C/C++ API
 0.2.0 (Jan 2015)
 0.1.0 (Jul 2013)
 
