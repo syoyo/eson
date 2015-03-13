@@ -126,14 +126,14 @@ class Value
       // Elements in the array must be all same type.
       //
 
+	  int64_t sum = 0;
       for (size_t i = 0; i < array_.size(); i++) {
         char element_type = array_[i].Type();
         assert(base_element_type == element_type);
-        // @todo
-        assert(0);
+		sum += array_[i].ComputeSize();
       }
       
-      return -1; // @todo
+      return sum + 1  + sizeof(int64_t); // @todo
     }
 
     /// Compute object size.
@@ -308,6 +308,7 @@ typedef Value::Binary   Binary;
 // Deserialize data from memory 'p'.
 // Returns error string. Empty if success.
 std::string Parse(Value& v, const uint8_t* p);
+std::string Parse(Array& v, const uint8_t* p);
 
 class ESON
 {

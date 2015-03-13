@@ -112,6 +112,24 @@ Value::Serialize(uint8_t* p) const
       }
     } 
     break;
+  case ARRAY_TYPE:
+	  {
+		  (*(reinterpret_cast<int64_t*>(ptr))) = size_;
+		  ptr += sizeof(int64_t);
+
+		char ty = static_cast<char>(type_);
+		(*(reinterpret_cast<char*>(ptr))) = ty;
+		ptr++;
+
+		  (*(reinterpret_cast<int64_t*>(ptr))) = array_.size();
+		  ptr += sizeof(int64_t);
+
+		  for (size_t i = 0; i < array_.size(); i++) {
+			char element_type = array_[i].Type();
+			ptr = array_[i].Serialize( ptr );
+		  }
+	  }
+	  break;
   default:
     assert(0);
     break;
@@ -259,6 +277,69 @@ ParseElement(
   return ptr;
 }
 
+static const uint8_t*
+ParseElement(
+  std::stringstream& err,
+  Value& v,
+  const uint8_t* ptr)
+{
+	const uint8_t* p = ptr;
+  // Read total size.
+  int64_t sz = *(reinterpret_cast<const int64_t*>(ptr));
+  ptr += sizeof(int64_t);
+  //printf("[Parse] total size = %lld\n", sz);
+  assert(sz > 0);
+
+  Object obj;
+
+  int64_t read_size = 0;
+  while (read_size < sz) {
+    ptr = ParseElement(err, obj, ptr);
+    read_size = ptr - p;
+    //printf("read_size = %d, total = %d\n", (int)read_size, (int)sz);
+  }
+  v = Value(obj);
+  return ptr;
+}
+
+static const uint8_t*
+ParseElement(
+  std::stringstream& err,
+  Array& o,
+  const uint8_t* p)
+{
+  const uint8_t* ptr = p;
+
+  // Read tag;
+  Type type = (Type)*(reinterpret_cast<const char*>(ptr));
+  ptr++;
+  //printf("[Parse] ty = %d\n", type); 
+
+  std::string key;
+  if( type != ARRAY_TYPE )
+	  ptr = ReadKey(key, ptr);
+
+  switch (type) {
+  case ARRAY_TYPE:
+	  {
+		  int64_t nElems;
+		  ptr = ReadInt64(nElems, ptr);
+
+		  for( size_t i = 0; i<nElems; i++){
+			  Value value;
+			  ptr = ParseElement( err, value, ptr );
+			  o.push_back( value );
+		  }
+	  }
+	  break;
+  default:
+    assert(0);
+    break;
+  }
+
+  return ptr;
+}
+
 std::string eson::Parse(Value& v, const uint8_t* p)
 {
   std::stringstream err;
@@ -286,3 +367,30 @@ std::string eson::Parse(Value& v, const uint8_t* p)
 
   return err.str();
 }
+
+std::string eson::Parse(Array& v, const uint8_t* p)
+{
+  std::stringstream err;
+
+  const uint8_t* ptr = p;
+
+  //
+  // == toplevel element
+  //
+
+  // Read total size.
+  int64_t sz = *(reinterpret_cast<const int64_t*>(ptr));
+  ptr += sizeof(int64_t);
+  //printf("[Parse] total size = %lld\n", sz);
+  assert(sz > 0);
+
+  int64_t read_size = 0;
+  while (read_size < sz) {
+    ptr = ParseElement(err, v, ptr);
+    read_size = ptr - p;
+    //printf("read_size = %d, total = %d\n", (int)read_size, (int)sz);
+  }
+
+  return err.str();
+}
+
