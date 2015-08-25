@@ -60,9 +60,9 @@ VisitValue(const eson::Value& p, int indent)
   else if (p.IsBinary()) { 
     PrintIndent(indent); printf("[Binary] length = %lld\n", p.Size());
   } else if (p.IsFloat64()) { 
-    PrintIndent(indent); printf("%lf\n", p.Get<double>());
+    PrintIndent(indent); printf("%lf(float64)\n", p.Get<double>());
   } else if (p.IsInt64()) { 
-    PrintIndent(indent); printf("%lld\n", p.Get<int64_t>());
+    PrintIndent(indent); printf("%lld(int64)\n", p.Get<int64_t>());
   } else if (p.IsString()) { 
     PrintIndent(indent); printf("\"%s\"\n", p.Get<std::string>().c_str());
   } else if (p.IsBool()) { 
