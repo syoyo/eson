@@ -4,10 +4,11 @@ ESON is simple but powerful schema-less binary data format designed to handle Ex
 
 ESON is also designed to handle large-scale data efficiently for comming NVM(non-volatile memory) or SCM(storage-class memory) era.
 
-C++ API is primarily provided.
+C++ and python API is primarily provided.
 
 # Version
 
+0.3.1 (Aug 2015)  Initial python2 and python3 binding(no native module compilation required)
 0.3.0 (Mar 2015)  Initial support of ARRAY in C/C++ API
 0.2.0 (Jan 2015)
 0.1.0 (Jul 2013)
