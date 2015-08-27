@@ -8,7 +8,7 @@ d = {}
 
 farr = [1.0, 2.0, 2.1, 3.0, 3.5]
 
-d['aa'] = long(3)
+d['aa'] = long(3)   # int() is still OK
 d['bb'] = float(3)
 d['cc'] = packFloatList(farr)
 
