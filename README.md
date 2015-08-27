@@ -142,7 +142,8 @@ Lossy compression is also planned. Sengcom seems good idea for lossy compression
 
 ## Author(s)
 
-Syoyo Fujita(syoyo@lighttransport.com)
+* Syoyo Fujita(syoyo@lighttransport.com)
+* Yasutoshi Mori(https://github.com/mirageym) Python binding.
 
 ## License
 
