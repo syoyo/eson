@@ -42,6 +42,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <unistd.h>
 #endif
 
+//#ifdef ANDROID
+//#include <android/log.h>
+//#define printf(...) __android_log_print(ANDROID_LOG_INFO, "ESON", __VA_ARGS__);
+//#endif
+
 using namespace eson;
 
 //
@@ -56,19 +61,22 @@ uint8_t *Value::Serialize(uint8_t *p) const {
     ptr += sizeof(double);
     break;
   case INT64_TYPE: {
-    (*(reinterpret_cast<int64_t *>(ptr))) = int64_;
+    //(*(reinterpret_cast<int64_t *>(ptr))) = int64_;
+    memcpy(ptr, &int64_, sizeof(int64_t));
     ptr += sizeof(int64_t);
   } break;
   case STRING_TYPE: {
     // len(64bit) + string
-    (*(reinterpret_cast<int64_t *>(ptr))) = size_;
+    //(*(reinterpret_cast<int64_t *>(ptr))) = size_;
+    memcpy(ptr, &size_, sizeof(int64_t));
     ptr += sizeof(int64_t);
     memcpy(ptr, string_.c_str(), size_);
     ptr += size_;
   } break;
   case BINARY_TYPE: {
     // len(64bit) + bindata
-    (*(reinterpret_cast<int64_t *>(ptr))) = size_;
+    //(*(reinterpret_cast<int64_t *>(ptr))) = size_;
+    memcpy(ptr, &size_, sizeof(int64_t));
     ptr += sizeof(int64_t);
     memcpy(ptr, binary_.ptr, size_);
     ptr += size_;
@@ -78,7 +86,8 @@ uint8_t *Value::Serialize(uint8_t *p) const {
     // First compute object size
     int64_t object_size = Size();
 
-    (*(reinterpret_cast<int64_t *>(ptr))) = size_;
+    //(*(reinterpret_cast<int64_t *>(ptr))) = size_;
+    memcpy(ptr, &size_, sizeof(int64_t));
     ptr += sizeof(int64_t);
 
     // Serialize key-value pairs.
@@ -102,14 +111,17 @@ uint8_t *Value::Serialize(uint8_t *p) const {
     }
   } break;
   case ARRAY_TYPE: {
-    (*(reinterpret_cast<int64_t *>(ptr))) = size_;
+    //(*(reinterpret_cast<int64_t *>(ptr))) = size_;
+    memcpy(ptr, &size_, sizeof(int64_t));
     ptr += sizeof(int64_t);
 
     char ty = static_cast<char>(type_);
     (*(reinterpret_cast<char *>(ptr))) = ty;
     ptr++;
 
-    (*(reinterpret_cast<int64_t *>(ptr))) = array_.size();
+    //(*(reinterpret_cast<int64_t *>(ptr))) = array_.size();
+    int64_t arraySize = array_.size();
+    memcpy(ptr, &arraySize, sizeof(int64_t));
     ptr += sizeof(int64_t);
 
     for (size_t i = 0; i < array_.size(); i++) {
@@ -138,14 +150,18 @@ static const uint8_t *ReadKey(std::string &key, const uint8_t *p) {
 }
 
 static const uint8_t *ReadFloat64(double &v, const uint8_t *p) {
-  v = *(reinterpret_cast<const double *>(p));
+  double val = 0.0;
+  memcpy(&val, reinterpret_cast<const double *>(p), sizeof(double));
+  v = val;
   p += sizeof(double);
 
   return p;
 }
 
 static const uint8_t *ReadInt64(int64_t &v, const uint8_t *p) {
-  v = *(reinterpret_cast<const int64_t *>(p));
+  int64_t val = 0;
+  memcpy(&val, reinterpret_cast<const int64_t *>(p), sizeof(int64_t));
+  v = val;
   p += sizeof(int64_t);
 
   return p;
@@ -153,7 +169,9 @@ static const uint8_t *ReadInt64(int64_t &v, const uint8_t *p) {
 
 static const uint8_t *ReadString(std::string &s, const uint8_t *p) {
   // N + string data.
-  int64_t n = *(reinterpret_cast<const int64_t *>(p));
+  int64_t val;
+  memcpy(&val, reinterpret_cast<const int64_t *>(p), sizeof(int64_t));
+  int64_t n = val;
   p += sizeof(int64_t);
 
   assert(n >= 0);
@@ -167,7 +185,10 @@ static const uint8_t *ReadString(std::string &s, const uint8_t *p) {
 static const uint8_t *ReadBinary(const uint8_t *&b, int64_t &n,
                                  const uint8_t *p) {
   // N + bin data.
-  n = *(reinterpret_cast<const int64_t *>(p));
+  int64_t val;
+  memcpy(&val, reinterpret_cast<const int64_t *>(p), sizeof(int64_t));
+   
+  n = val;
   p += sizeof(int64_t);
 
   assert(n >= 0);
@@ -181,7 +202,9 @@ static const uint8_t *ReadBinary(const uint8_t *&b, int64_t &n,
 
 static const uint8_t *ReadObject(Object &o, const uint8_t *p) {
   // N + object data.
-  int64_t n = *(reinterpret_cast<const int64_t *>(p));
+  int64_t val;
+  memcpy(&val, reinterpret_cast<const int64_t *>(p), sizeof(int64_t));
+  int64_t n = val;
   p += sizeof(int64_t);
 
   assert(n >= 0);
@@ -233,6 +256,7 @@ static const uint8_t *ParseElement(std::stringstream &err, Object &o,
     o[key] = Value(obj);
   } break;
   default:
+    printf("ty: %d\n", type);
     assert(0);
     break;
   }
@@ -244,7 +268,9 @@ static const uint8_t *ParseElement(std::stringstream &err, Value &v,
                                    const uint8_t *ptr) {
   const uint8_t *p = ptr;
   // Read total size.
-  int64_t sz = *(reinterpret_cast<const int64_t *>(ptr));
+  int64_t val = 0;
+  memcpy(&val, reinterpret_cast<const int64_t *>(ptr), sizeof(int64_t));
+  int64_t sz = val;
   ptr += sizeof(int64_t);
   // printf("[Parse] total size = %lld\n", sz);
   assert(sz > 0);
@@ -268,7 +294,6 @@ static const uint8_t *ParseElement(std::stringstream &err, Array &o,
   // Read tag;
   Type type = (Type) * (reinterpret_cast<const char *>(ptr));
   ptr++;
-  // printf("[Parse] ty = %d\n", type);
 
   std::string key;
   if (type != ARRAY_TYPE)
@@ -303,7 +328,9 @@ std::string eson::Parse(Value &v, const uint8_t *p) {
   //
 
   // Read total size.
-  int64_t sz = *(reinterpret_cast<const int64_t *>(ptr));
+  int64_t val = 0;
+  memcpy(&val, reinterpret_cast<const int64_t *>(ptr), sizeof(int64_t));
+  int64_t sz = val;
   ptr += sizeof(int64_t);
   assert(sz > 0);
 
@@ -330,7 +357,9 @@ std::string eson::Parse(Array &v, const uint8_t *p) {
   //
 
   // Read total size.
-  int64_t sz = *(reinterpret_cast<const int64_t *>(ptr));
+  int64_t val = 0;
+  memcpy(&val, reinterpret_cast<const int64_t *>(ptr), sizeof(int64_t));
+  int64_t sz = val;
   ptr += sizeof(int64_t);
   // printf("[Parse] total size = %lld\n", sz);
   assert(sz > 0);
