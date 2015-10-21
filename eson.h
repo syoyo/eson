@@ -115,8 +115,6 @@ public:
   int64_t ComputeArraySize() const {
     assert(type_ == ARRAY_TYPE);
 
-    int64_t array_size = 0;
-
     assert(array_.size() > 0);
 
     char base_element_type = array_[0].Type();

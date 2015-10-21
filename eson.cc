@@ -83,9 +83,6 @@ uint8_t *Value::Serialize(uint8_t *p) const {
   } break;
   case OBJECT_TYPE: {
 
-    // First compute object size
-    int64_t object_size = Size();
-
     //(*(reinterpret_cast<int64_t *>(ptr))) = size_;
     memcpy(ptr, &size_, sizeof(int64_t));
     ptr += sizeof(int64_t);
@@ -125,7 +122,6 @@ uint8_t *Value::Serialize(uint8_t *p) const {
     ptr += sizeof(int64_t);
 
     for (size_t i = 0; i < array_.size(); i++) {
-      char element_type = array_[i].Type();
       ptr = array_[i].Serialize(ptr);
     }
   } break;
@@ -249,14 +245,13 @@ static const uint8_t *ParseElement(std::stringstream &err, Object &o,
     o[key] = Value(bin_ptr, bin_size);
   } break;
   case OBJECT_TYPE: {
-    int64_t read_size = 0;
     Object obj;
     ptr = ReadObject(obj, ptr);
 
     o[key] = Value(obj);
   } break;
   default:
-    printf("ty: %d\n", type);
+    //printf("ty: %d\n", type);
     assert(0);
     break;
   }
@@ -304,7 +299,7 @@ static const uint8_t *ParseElement(std::stringstream &err, Array &o,
     int64_t nElems;
     ptr = ReadInt64(nElems, ptr);
 
-    for (size_t i = 0; i < nElems; i++) {
+    for (size_t i = 0; i < (size_t)nElems; i++) {
       Value value;
       ptr = ParseElement(err, value, ptr);
       o.push_back(value);
