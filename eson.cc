@@ -204,6 +204,7 @@ static const uint8_t *ReadObject(Object &o, const uint8_t *p) {
   p += sizeof(int64_t);
 
   assert(n >= 0);
+  (void)n;
 
   std::stringstream ss;
   const uint8_t *ptr = ParseElement(ss, o, p);
