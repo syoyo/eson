@@ -147,7 +147,7 @@ static const uint8_t *ReadKey(std::string &key, const uint8_t *p) {
 
 static const uint8_t *ReadFloat64(double &v, const uint8_t *p) {
   double val = 0.0;
-  memcpy(&val, reinterpret_cast<const double *>(p), sizeof(double));
+  memcpy(&val, p, sizeof(double));
   v = val;
   p += sizeof(double);
 
@@ -156,7 +156,7 @@ static const uint8_t *ReadFloat64(double &v, const uint8_t *p) {
 
 static const uint8_t *ReadInt64(int64_t &v, const uint8_t *p) {
   int64_t val = 0;
-  memcpy(&val, reinterpret_cast<const int64_t *>(p), sizeof(int64_t));
+  memcpy(&val, p, sizeof(int64_t));
   v = val;
   p += sizeof(int64_t);
 
@@ -166,7 +166,7 @@ static const uint8_t *ReadInt64(int64_t &v, const uint8_t *p) {
 static const uint8_t *ReadString(std::string &s, const uint8_t *p) {
   // N + string data.
   int64_t val;
-  memcpy(&val, reinterpret_cast<const int64_t *>(p), sizeof(int64_t));
+  memcpy(&val, p, sizeof(int64_t));
   int64_t n = val;
   p += sizeof(int64_t);
 
@@ -182,7 +182,7 @@ static const uint8_t *ReadBinary(const uint8_t *&b, int64_t &n,
                                  const uint8_t *p) {
   // N + bin data.
   int64_t val;
-  memcpy(&val, reinterpret_cast<const int64_t *>(p), sizeof(int64_t));
+  memcpy(&val, p, sizeof(int64_t));
    
   n = val;
   p += sizeof(int64_t);
@@ -199,7 +199,7 @@ static const uint8_t *ReadBinary(const uint8_t *&b, int64_t &n,
 static const uint8_t *ReadObject(Object &o, const uint8_t *p) {
   // N + object data.
   int64_t val;
-  memcpy(&val, reinterpret_cast<const int64_t *>(p), sizeof(int64_t));
+  memcpy(&val, p, sizeof(int64_t));
   int64_t n = val;
   p += sizeof(int64_t);
 
@@ -264,7 +264,7 @@ static const uint8_t *ParseElement(std::stringstream &err, Value &v,
   const uint8_t *p = ptr;
   // Read total size.
   int64_t val = 0;
-  memcpy(&val, reinterpret_cast<const int64_t *>(ptr), sizeof(int64_t));
+  memcpy(&val, ptr, sizeof(int64_t));
   int64_t sz = val;
   ptr += sizeof(int64_t);
   // printf("[Parse] total size = %lld\n", sz);
@@ -324,7 +324,7 @@ std::string eson::Parse(Value &v, const uint8_t *p) {
 
   // Read total size.
   int64_t val = 0;
-  memcpy(&val, reinterpret_cast<const int64_t *>(ptr), sizeof(int64_t));
+  memcpy(&val, ptr, sizeof(int64_t));
   int64_t sz = val;
   ptr += sizeof(int64_t);
   assert(sz > 0);
@@ -353,7 +353,7 @@ std::string eson::Parse(Array &v, const uint8_t *p) {
 
   // Read total size.
   int64_t val = 0;
-  memcpy(&val, reinterpret_cast<const int64_t *>(ptr), sizeof(int64_t));
+  memcpy(&val, ptr, sizeof(int64_t));
   int64_t sz = val;
   ptr += sizeof(int64_t);
   // printf("[Parse] total size = %lld\n", sz);
