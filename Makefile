@@ -7,17 +7,11 @@ ARFLAGS=rcu
 
 all: eson_test
 
-eson.o: eson.cc
-	$(CXX) $(CXXFLAGS) -c eson.cc -o eson.o
-
 main.o: main.cc
 	$(CXX) $(CXXFLAGS) -c main.cc
 
-libeson.a: eson.o
-	$(AR) $(ARFLAGS) libeson.a eson.o
-
-eson_test: libeson.a main.o
-	$(CXX) $(CXXFLAGS) -o eson_test main.o -L./ -leson
+eson_test: main.o
+	$(CXX) $(CXXFLAGS) -o eson_test main.o
 
 clean:
-	rm -rf main.o eson.o eson_test libeson.a
+	rm -rf main.o eson_test
