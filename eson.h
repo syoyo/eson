@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2013-2015, Light Transport Entertainment Inc.
+Copyright (c) 2013-2016, Light Transport Entertainment Inc.
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
@@ -24,8 +24,8 @@ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
 (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
-#ifndef __ESON_H__
-#define __ESON_H__
+#ifndef ESON_H_
+#define ESON_H_
 
 #include <stdint.h>
 
@@ -33,9 +33,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <cstdio>
 #include <cstdlib>
 
-#include <vector>
-#include <string>
 #include <map>
+#include <string>
+#include <vector>
 
 namespace eson {
 
@@ -47,11 +47,11 @@ typedef enum {
   STRING_TYPE = 4,
   ARRAY_TYPE = 5,
   BINARY_TYPE = 6,
-  OBJECT_TYPE = 7,
+  OBJECT_TYPE = 7
 } Type;
 
 class Value {
-public:
+ public:
   typedef struct {
     const uint8_t *ptr;
     int64_t size;
@@ -60,13 +60,15 @@ public:
   typedef std::vector<Value> Array;
   typedef std::map<std::string, Value> Object;
 
-protected:
-  int type_;              // Data type
-  mutable uint64_t size_; // Data size
+ protected:
+  int type_;               // Data type
+  int pad0_;
+  mutable uint64_t size_;  // Data size
   mutable bool dirty_;
 
   // union {
   bool boolean_;
+  char pad6_[6];
   int64_t int64_;
   double float64_;
   std::string string_;
@@ -75,7 +77,7 @@ protected:
   Object object_;
   //};
 
-public:
+ public:
   Value() : type_(NULL_TYPE), dirty_(true) {}
 
   explicit Value(bool b) : type_(BOOL_TYPE), dirty_(false) {
@@ -97,8 +99,8 @@ public:
   explicit Value(const uint8_t *p, uint64_t n)
       : type_(BINARY_TYPE), dirty_(false) {
     binary_ = Binary();
-    binary_.ptr = p; // Just save a pointer.
-    binary_.size = n;
+    binary_.ptr = p;  // Just save a pointer.
+    binary_.size = static_cast<int64_t>(n);
     size_ = n;
   }
   explicit Value(const Array &a) : type_(ARRAY_TYPE), dirty_(true) {
@@ -109,10 +111,10 @@ public:
     object_ = Object(o);
     size_ = ComputeObjectSize();
   }
-  ~Value(){};
+  ~Value(){}
 
   /// Compute size of array element.
-  int64_t ComputeArraySize() const {
+  uint64_t ComputeArraySize() const {
     assert(type_ == ARRAY_TYPE);
 
     assert(array_.size() > 0);
@@ -123,7 +125,7 @@ public:
     // Elements in the array must be all same type.
     //
 
-    int64_t sum = 0;
+    uint64_t sum = 0;
     for (size_t i = 0; i < array_.size(); i++) {
       char element_type = array_[i].Type();
       assert(base_element_type == element_type);
@@ -136,52 +138,52 @@ public:
   }
 
   /// Compute object size.
-  int64_t ComputeObjectSize() const {
+  uint64_t ComputeObjectSize() const {
     assert(type_ == OBJECT_TYPE);
 
-    int64_t object_size = 0;
+    uint64_t object_size = 0;
 
     for (Object::const_iterator it = object_.begin(); it != object_.end();
          ++it) {
       const std::string &key = it->first;
-      int64_t key_len = key.length() + 1; // + '\0'
-      int64_t data_len = it->second.ComputeSize();
-      object_size += key_len + data_len + 1; // +1 = tag size.
+      uint64_t key_len = key.length() + 1;  // + '\0'
+      uint64_t data_len = it->second.ComputeSize();
+      object_size += key_len + data_len + 1;  // +1 = tag size.
     }
 
     return object_size;
   }
 
   /// Compute data size.
-  int64_t ComputeSize() const {
+  uint64_t ComputeSize() const {
     switch (type_) {
-    case INT64_TYPE:
-      return 8;
-      break;
-    case FLOAT64_TYPE:
-      return 8;
-      break;
-    case STRING_TYPE:
-      return string_.size() + sizeof(int64_t); // N + str data
-      break;
-    case BINARY_TYPE:
-      return size_ + sizeof(int64_t); // N + bin data
-      break;
-    case ARRAY_TYPE:
-      return ComputeArraySize() + sizeof(int64_t); // datalen + N
-      break;
-    case OBJECT_TYPE:
-      return ComputeObjectSize() + sizeof(int64_t); // datalen + N
-      break;
-    default:
-      assert(0);
-      break;
+      case INT64_TYPE:
+        return 8;
+        break;
+      case FLOAT64_TYPE:
+        return 8;
+        break;
+      case STRING_TYPE:
+        return string_.size() + sizeof(int64_t);  // N + str data
+        break;
+      case BINARY_TYPE:
+        return size_ + sizeof(int64_t);  // N + bin data
+        break;
+      case ARRAY_TYPE:
+        return ComputeArraySize() + sizeof(int64_t);  // datalen + N
+        break;
+      case OBJECT_TYPE:
+        return ComputeObjectSize() + sizeof(int64_t);  // datalen + N
+        break;
+      default:
+        assert(0);
+        break;
     }
     assert(0);
-    return -1; // Never come here.
+    return 0;  // Never come here.
   }
 
-  int64_t Size() const {
+  uint64_t Size() const {
     if (!dirty_) {
       return size_;
     } else {
@@ -192,52 +194,52 @@ public:
     }
   }
 
-  const char Type() const { return (const char)type_; }
+  char Type() const { return static_cast<const char>(type_); }
 
-  const bool IsBool() const { return (type_ == BOOL_TYPE); }
+  bool IsBool() const { return (type_ == BOOL_TYPE); }
 
-  const bool IsInt64() const { return (type_ == INT64_TYPE); }
+  bool IsInt64() const { return (type_ == INT64_TYPE); }
 
-  const bool IsFloat64() const { return (type_ == FLOAT64_TYPE); }
+  bool IsFloat64() const { return (type_ == FLOAT64_TYPE); }
 
-  const bool IsString() const { return (type_ == STRING_TYPE); }
+  bool IsString() const { return (type_ == STRING_TYPE); }
 
-  const bool IsBinary() const { return (type_ == BINARY_TYPE); }
+  bool IsBinary() const { return (type_ == BINARY_TYPE); }
 
-  const bool IsArray() const { return (type_ == ARRAY_TYPE); }
+  bool IsArray() const { return (type_ == ARRAY_TYPE); }
 
-  const bool IsObject() const { return (type_ == OBJECT_TYPE); }
+  bool IsObject() const { return (type_ == OBJECT_TYPE); }
 
   // Accessor
-  template <typename T> const T &Get() const;
-  template <typename T> T &Get();
+  template <typename T>
+  const T &Get() const;
+  template <typename T>
+  T &Get();
 
   // Lookup value from an array
   const Value &Get(int64_t idx) const {
-    static Value null_value;
+    static Value& null_value = *(new Value());
     assert(IsArray());
     assert(idx >= 0);
-    return ((uint64_t)idx < array_.size()) ? array_[idx] : null_value;
+    return (static_cast<uint64_t>(idx) < array_.size()) ? array_[static_cast<uint64_t>(idx)] : null_value;
   }
 
   // Lookup value from a key-value pair
   const Value &Get(const std::string &key) const {
-    static Value null_value;
+    static Value& null_value = *(new Value());
     assert(IsObject());
     Object::const_iterator it = object_.find(key);
     return (it != object_.end()) ? it->second : null_value;
   }
 
   size_t ArrayLen() const {
-    if (!IsArray())
-      return 0;
+    if (!IsArray()) return 0;
     return array_.size();
   }
 
   // Valid only for object type.
   bool Has(const std::string &key) const {
-    if (!IsObject())
-      return false;
+    if (!IsObject()) return false;
     Object::const_iterator it = object_.find(key);
     return (it != object_.end()) ? true : false;
   }
@@ -245,8 +247,7 @@ public:
   // List keys
   std::vector<std::string> Keys() const {
     std::vector<std::string> keys;
-    if (!IsObject())
-      return keys; // empty
+    if (!IsObject()) return keys;  // empty
 
     for (Object::const_iterator it = object_.begin(); it != object_.end();
          ++it) {
@@ -262,7 +263,9 @@ public:
   // Return next data location.
   uint8_t *Serialize(uint8_t *p) const;
 
-private:
+ private:
+  static Value null_value();
+
 };
 
 // Alias
@@ -270,9 +273,15 @@ typedef Value::Array Array;
 typedef Value::Object Object;
 typedef Value::Binary Binary;
 
-#define GET(ctype, var)                                                        \
-  template <> inline const ctype &Value::Get<ctype>() const { return var; }    \
-  template <> inline ctype &Value::Get<ctype>() { return var; }
+#define GET(ctype, var)                           \
+  template <>                                     \
+  inline const ctype &Value::Get<ctype>() const { \
+    return var;                                   \
+  }                                               \
+  template <>                                     \
+  inline ctype &Value::Get<ctype>() {             \
+    return var;                                   \
+  }
 GET(bool, boolean_)
 GET(double, float64_)
 GET(int64_t, int64_)
@@ -288,8 +297,7 @@ std::string Parse(Value &v, const uint8_t *p);
 std::string Parse(Array &v, const uint8_t *p);
 
 class ESON {
-
-public:
+ public:
   ESON();
   ~ESON();
 
@@ -299,9 +307,9 @@ public:
   /// Dump data to a file.
   bool Dump(const char *filename);
 
-private:
-  uint8_t *data_; /// Pointer to data
-  uint64_t size_; /// Total data size
+ private:
+  uint8_t *data_;  /// Pointer to data
+  uint64_t size_;  /// Total data size
 
   bool valid_;
 };
@@ -315,21 +323,22 @@ private:
 #include <sstream>
 
 #ifdef _WIN32
-#include <Windows.h> // File mapping
+#include <Windows.h>  // File mapping
 //#error TODO
 #else
-#include <sys/stat.h>
-#include <sys/mman.h>
 #include <fcntl.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #endif
 
 //#ifdef ANDROID
 //#include <android/log.h>
-//#define printf(...) __android_log_print(ANDROID_LOG_INFO, "ESON", __VA_ARGS__);
+//#define printf(...) __android_log_print(ANDROID_LOG_INFO, "ESON",
+//__VA_ARGS__);
 //#endif
 
-using namespace eson;
+namespace eson {
 
 //
 // --
@@ -338,78 +347,76 @@ using namespace eson;
 uint8_t *Value::Serialize(uint8_t *p) const {
   uint8_t *ptr = p;
   switch (type_) {
-  case FLOAT64_TYPE:
-    memcpy(ptr, &float64_, sizeof(double));
-    ptr += sizeof(double);
-    break;
-  case INT64_TYPE: {
-    //(*(reinterpret_cast<int64_t *>(ptr))) = int64_;
-    memcpy(ptr, &int64_, sizeof(int64_t));
-    ptr += sizeof(int64_t);
-  } break;
-  case STRING_TYPE: {
-    // len(64bit) + string
-    //(*(reinterpret_cast<int64_t *>(ptr))) = size_;
-    memcpy(ptr, &size_, sizeof(int64_t));
-    ptr += sizeof(int64_t);
-    memcpy(ptr, string_.c_str(), size_);
-    ptr += size_;
-  } break;
-  case BINARY_TYPE: {
-    // len(64bit) + bindata
-    //(*(reinterpret_cast<int64_t *>(ptr))) = size_;
-    memcpy(ptr, &size_, sizeof(int64_t));
-    ptr += sizeof(int64_t);
-    memcpy(ptr, binary_.ptr, size_);
-    ptr += size_;
-  } break;
-  case OBJECT_TYPE: {
+    case FLOAT64_TYPE:
+      memcpy(ptr, &float64_, sizeof(double));
+      ptr += sizeof(double);
+      break;
+    case INT64_TYPE: {
+      //(*(reinterpret_cast<int64_t *>(ptr))) = int64_;
+      memcpy(ptr, &int64_, sizeof(int64_t));
+      ptr += sizeof(int64_t);
+    } break;
+    case STRING_TYPE: {
+      // len(64bit) + string
+      //(*(reinterpret_cast<int64_t *>(ptr))) = size_;
+      memcpy(ptr, &size_, sizeof(int64_t));
+      ptr += sizeof(int64_t);
+      memcpy(ptr, string_.c_str(), size_);
+      ptr += size_;
+    } break;
+    case BINARY_TYPE: {
+      // len(64bit) + bindata
+      //(*(reinterpret_cast<int64_t *>(ptr))) = size_;
+      memcpy(ptr, &size_, sizeof(int64_t));
+      ptr += sizeof(int64_t);
+      memcpy(ptr, binary_.ptr, size_);
+      ptr += size_;
+    } break;
+    case OBJECT_TYPE: {
+      //(*(reinterpret_cast<int64_t *>(ptr))) = size_;
+      memcpy(ptr, &size_, sizeof(int64_t));
+      ptr += sizeof(int64_t);
 
-    //(*(reinterpret_cast<int64_t *>(ptr))) = size_;
-    memcpy(ptr, &size_, sizeof(int64_t));
-    ptr += sizeof(int64_t);
+      // Serialize key-value pairs.
+      for (Object::const_iterator it = object_.begin(); it != object_.end();
+           ++it) {
+        // Emit type tag.
+        char ty = static_cast<char>(it->second.type_);
+        (*(reinterpret_cast<char *>(ptr))) = ty;
+        ptr++;
 
-    // Serialize key-value pairs.
-    for (Object::const_iterator it = object_.begin(); it != object_.end();
-         ++it) {
+        // Emit key
+        const std::string &key = it->first;
+        memcpy(ptr, key.c_str(), key.size());
+        ptr += key.size();
+        (*(reinterpret_cast<char *>(ptr))) = '\0';  // null terminate
+        ptr++;
 
-      // Emit type tag.
-      char ty = static_cast<char>(it->second.type_);
+        // Emit element
+        ptr = it->second.Serialize(ptr);
+      }
+    } break;
+    case ARRAY_TYPE: {
+      //(*(reinterpret_cast<int64_t *>(ptr))) = size_;
+      memcpy(ptr, &size_, sizeof(int64_t));
+      ptr += sizeof(int64_t);
+
+      char ty = static_cast<char>(type_);
       (*(reinterpret_cast<char *>(ptr))) = ty;
       ptr++;
 
-      // Emit key
-      const std::string &key = it->first;
-      memcpy(ptr, key.c_str(), key.size());
-      ptr += key.size();
-      (*(reinterpret_cast<char *>(ptr))) = '\0'; // null terminate
-      ptr++;
+      //(*(reinterpret_cast<int64_t *>(ptr))) = array_.size();
+      uint64_t arraySize = array_.size();
+      memcpy(ptr, &arraySize, sizeof(int64_t));
+      ptr += sizeof(int64_t);
 
-      // Emit element
-      ptr = it->second.Serialize(ptr);
-    }
-  } break;
-  case ARRAY_TYPE: {
-    //(*(reinterpret_cast<int64_t *>(ptr))) = size_;
-    memcpy(ptr, &size_, sizeof(int64_t));
-    ptr += sizeof(int64_t);
-
-    char ty = static_cast<char>(type_);
-    (*(reinterpret_cast<char *>(ptr))) = ty;
-    ptr++;
-
-    //(*(reinterpret_cast<int64_t *>(ptr))) = array_.size();
-    int64_t arraySize = array_.size();
-    memcpy(ptr, &arraySize, sizeof(int64_t));
-    ptr += sizeof(int64_t);
-
-    for (size_t i = 0; i < array_.size(); i++) {
-      ptr = array_[i].Serialize(ptr);
-    }
-  } break;
-  default:
-    assert(0);
-    break;
+      for (size_t i = 0; i < array_.size(); i++) {
+        ptr = array_[i].Serialize(ptr);
+      }
+    } break;
+    default:
+      assert(0);
+      break;
   }
 
   return ptr;
@@ -422,7 +429,7 @@ static const uint8_t *ParseElement(std::stringstream &err, Object &o,
 static const uint8_t *ReadKey(std::string &key, const uint8_t *p) {
   key = std::string(reinterpret_cast<const char *>(p));
 
-  p += key.length() + 1; // + '\0'
+  p += key.length() + 1;  // + '\0'
 
   return p;
 }
@@ -454,7 +461,7 @@ static const uint8_t *ReadString(std::string &s, const uint8_t *p) {
 
   assert(n >= 0);
 
-  s = std::string(reinterpret_cast<const char *>(p), n);
+  s = std::string(reinterpret_cast<const char *>(p), static_cast<size_t>(n));
   p += n;
 
   return p;
@@ -465,7 +472,7 @@ static const uint8_t *ReadBinary(const uint8_t *&b, int64_t &n,
   // N + bin data.
   int64_t val;
   memcpy(&val, p, sizeof(int64_t));
-   
+
   n = val;
   p += sizeof(int64_t);
 
@@ -497,46 +504,53 @@ static const uint8_t *ReadObject(Object &o, const uint8_t *p) {
 static const uint8_t *ParseElement(std::stringstream &err, Object &o,
                                    const uint8_t *p) {
   const uint8_t *ptr = p;
+  (void)err;
 
   // Read tag;
-  Type type = (Type) * (reinterpret_cast<const char *>(ptr));
+  Type type = static_cast<Type>(*(reinterpret_cast<const char *>(ptr)));
   ptr++;
 
   std::string key;
   ptr = ReadKey(key, ptr);
 
   switch (type) {
-  case FLOAT64_TYPE: {
-    double val;
-    ptr = ReadFloat64(val, ptr);
-    o[key] = Value(val);
-  } break;
-  case INT64_TYPE: {
-    int64_t val;
-    ptr = ReadInt64(val, ptr);
-    o[key] = Value(val);
-  } break;
-  case STRING_TYPE: {
-    std::string str;
-    ptr = ReadString(str, ptr);
-    o[key] = Value(str);
-  } break;
-  case BINARY_TYPE: {
-    const uint8_t *bin_ptr;
-    int64_t bin_size;
-    ptr = ReadBinary(bin_ptr, bin_size, ptr);
-    o[key] = Value(bin_ptr, bin_size);
-  } break;
-  case OBJECT_TYPE: {
-    Object obj;
-    ptr = ReadObject(obj, ptr);
+    case FLOAT64_TYPE: {
+      double val;
+      ptr = ReadFloat64(val, ptr);
+      o[key] = Value(val);
+    } break;
+    case INT64_TYPE: {
+      int64_t val;
+      ptr = ReadInt64(val, ptr);
+      o[key] = Value(val);
+    } break;
+    case STRING_TYPE: {
+      std::string str;
+      ptr = ReadString(str, ptr);
+      o[key] = Value(str);
+    } break;
+    case BINARY_TYPE: {
+      const uint8_t *bin_ptr;
+      int64_t bin_size;
+      ptr = ReadBinary(bin_ptr, bin_size, ptr);
+      o[key] = Value(bin_ptr, static_cast<uint64_t>(bin_size));
+    } break;
+    case OBJECT_TYPE: {
+      Object obj;
+      ptr = ReadObject(obj, ptr);
 
-    o[key] = Value(obj);
-  } break;
-  default:
-    //printf("ty: %d\n", type);
-    assert(0);
-    break;
+      o[key] = Value(obj);
+    } break;
+    case NULL_TYPE: {
+    } break;
+    case BOOL_TYPE: {
+      // @todo
+      assert(0);
+    } break;
+    case ARRAY_TYPE: {
+      // @todo
+      assert(0);
+    } break;
   }
 
   return ptr;
@@ -570,33 +584,27 @@ static const uint8_t *ParseElement(std::stringstream &err, Array &o,
   const uint8_t *ptr = p;
 
   // Read tag;
-  Type type = (Type) * (reinterpret_cast<const char *>(ptr));
+  Type type = static_cast<Type>( * (reinterpret_cast<const char *>(ptr)));
   ptr++;
 
   std::string key;
-  if (type != ARRAY_TYPE)
-    ptr = ReadKey(key, ptr);
+  if (type != ARRAY_TYPE) ptr = ReadKey(key, ptr);
 
-  switch (type) {
-  case ARRAY_TYPE: {
-    int64_t nElems;
-    ptr = ReadInt64(nElems, ptr);
+  assert(type == ARRAY_TYPE);
 
-    for (size_t i = 0; i < (size_t)nElems; i++) {
-      Value value;
-      ptr = ParseElement(err, value, ptr);
-      o.push_back(value);
-    }
-  } break;
-  default:
-    assert(0);
-    break;
+  int64_t nElems;
+  ptr = ReadInt64(nElems, ptr);
+
+  for (size_t i = 0; i < static_cast<size_t>(nElems); i++) {
+    Value value;
+    ptr = ParseElement(err, value, ptr);
+    o.push_back(value);
   }
 
   return ptr;
 }
 
-std::string eson::Parse(Value &v, const uint8_t *p) {
+std::string Parse(Value &v, const uint8_t *p) {
   std::stringstream err;
 
   const uint8_t *ptr = p;
@@ -625,7 +633,7 @@ std::string eson::Parse(Value &v, const uint8_t *p) {
   return err.str();
 }
 
-std::string eson::Parse(Array &v, const uint8_t *p) {
+std::string Parse(Array &v, const uint8_t *p) {
   std::stringstream err;
 
   const uint8_t *ptr = p;
@@ -653,4 +661,6 @@ std::string eson::Parse(Array &v, const uint8_t *p) {
 }
 #endif
 
-#endif // __ESON_H__
+}  // namespace eson
+
+#endif  // ESON_H_
