@@ -78,7 +78,7 @@ VisitValue(const eson::Value& p, int indent)
   }
 }
 
-}
+}  // namespace
 
 int
 main(

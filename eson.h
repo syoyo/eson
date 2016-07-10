@@ -61,7 +61,7 @@ class Value {
   typedef std::map<std::string, Value> Object;
 
  protected:
-  int type_;               // Data type
+  int type_;  // Data type
   int pad0_;
   mutable uint64_t size_;  // Data size
   mutable bool dirty_;
@@ -111,7 +111,7 @@ class Value {
     object_ = Object(o);
     size_ = ComputeObjectSize();
   }
-  ~Value(){}
+  ~Value() {}
 
   /// Compute size of array element.
   uint64_t ComputeArraySize() const {
@@ -218,15 +218,17 @@ class Value {
 
   // Lookup value from an array
   const Value &Get(int64_t idx) const {
-    static Value& null_value = *(new Value());
+    static Value &null_value = *(new Value());
     assert(IsArray());
     assert(idx >= 0);
-    return (static_cast<uint64_t>(idx) < array_.size()) ? array_[static_cast<uint64_t>(idx)] : null_value;
+    return (static_cast<uint64_t>(idx) < array_.size())
+               ? array_[static_cast<uint64_t>(idx)]
+               : null_value;
   }
 
   // Lookup value from a key-value pair
   const Value &Get(const std::string &key) const {
-    static Value& null_value = *(new Value());
+    static Value &null_value = *(new Value());
     assert(IsObject());
     Object::const_iterator it = object_.find(key);
     return (it != object_.end()) ? it->second : null_value;
@@ -265,7 +267,6 @@ class Value {
 
  private:
   static Value null_value();
-
 };
 
 // Alias
@@ -313,7 +314,8 @@ class ESON {
 
   bool valid_;
 };
-}
+
+}  // namespace eson
 
 #ifdef ESON_IMPLEMENTATION
 #include <cassert>
@@ -323,8 +325,7 @@ class ESON {
 #include <sstream>
 
 #ifdef _WIN32
-#include <Windows.h>  // File mapping
-//#error TODO
+#include <Windows.h>  //  File mapping
 #else
 #include <fcntl.h>
 #include <sys/mman.h>
@@ -332,17 +333,7 @@ class ESON {
 #include <unistd.h>
 #endif
 
-//#ifdef ANDROID
-//#include <android/log.h>
-//#define printf(...) __android_log_print(ANDROID_LOG_INFO, "ESON",
-//__VA_ARGS__);
-//#endif
-
 namespace eson {
-
-//
-// --
-//
 
 uint8_t *Value::Serialize(uint8_t *p) const {
   uint8_t *ptr = p;
@@ -352,13 +343,13 @@ uint8_t *Value::Serialize(uint8_t *p) const {
       ptr += sizeof(double);
       break;
     case INT64_TYPE: {
-      //(*(reinterpret_cast<int64_t *>(ptr))) = int64_;
+      // (*(reinterpret_cast<int64_t *>(ptr))) = int64_;
       memcpy(ptr, &int64_, sizeof(int64_t));
       ptr += sizeof(int64_t);
     } break;
     case STRING_TYPE: {
       // len(64bit) + string
-      //(*(reinterpret_cast<int64_t *>(ptr))) = size_;
+      // (*(reinterpret_cast<int64_t *>(ptr))) = size_;
       memcpy(ptr, &size_, sizeof(int64_t));
       ptr += sizeof(int64_t);
       memcpy(ptr, string_.c_str(), size_);
@@ -366,14 +357,14 @@ uint8_t *Value::Serialize(uint8_t *p) const {
     } break;
     case BINARY_TYPE: {
       // len(64bit) + bindata
-      //(*(reinterpret_cast<int64_t *>(ptr))) = size_;
+      // (*(reinterpret_cast<int64_t *>(ptr))) = size_;
       memcpy(ptr, &size_, sizeof(int64_t));
       ptr += sizeof(int64_t);
       memcpy(ptr, binary_.ptr, size_);
       ptr += size_;
     } break;
     case OBJECT_TYPE: {
-      //(*(reinterpret_cast<int64_t *>(ptr))) = size_;
+      // (*(reinterpret_cast<int64_t *>(ptr))) = size_;
       memcpy(ptr, &size_, sizeof(int64_t));
       ptr += sizeof(int64_t);
 
@@ -397,7 +388,7 @@ uint8_t *Value::Serialize(uint8_t *p) const {
       }
     } break;
     case ARRAY_TYPE: {
-      //(*(reinterpret_cast<int64_t *>(ptr))) = size_;
+      // (*(reinterpret_cast<int64_t *>(ptr))) = size_;
       memcpy(ptr, &size_, sizeof(int64_t));
       ptr += sizeof(int64_t);
 
@@ -405,7 +396,7 @@ uint8_t *Value::Serialize(uint8_t *p) const {
       (*(reinterpret_cast<char *>(ptr))) = ty;
       ptr++;
 
-      //(*(reinterpret_cast<int64_t *>(ptr))) = array_.size();
+      // (*(reinterpret_cast<int64_t *>(ptr))) = array_.size();
       uint64_t arraySize = array_.size();
       memcpy(ptr, &arraySize, sizeof(int64_t));
       ptr += sizeof(int64_t);
@@ -564,7 +555,6 @@ static const uint8_t *ParseElement(std::stringstream &err, Value &v,
   memcpy(&val, ptr, sizeof(int64_t));
   int64_t sz = val;
   ptr += sizeof(int64_t);
-  // printf("[Parse] total size = %lld\n", sz);
   assert(sz > 0);
 
   Object obj;
@@ -573,7 +563,6 @@ static const uint8_t *ParseElement(std::stringstream &err, Value &v,
   while (read_size < sz) {
     ptr = ParseElement(err, obj, ptr);
     read_size = ptr - p;
-    // printf("read_size = %d, total = %d\n", (int)read_size, (int)sz);
   }
   v = Value(obj);
   return ptr;
@@ -584,7 +573,7 @@ static const uint8_t *ParseElement(std::stringstream &err, Array &o,
   const uint8_t *ptr = p;
 
   // Read tag;
-  Type type = static_cast<Type>( * (reinterpret_cast<const char *>(ptr)));
+  Type type = static_cast<Type>(*(reinterpret_cast<const char *>(ptr)));
   ptr++;
 
   std::string key;
@@ -647,20 +636,18 @@ std::string Parse(Array &v, const uint8_t *p) {
   memcpy(&val, ptr, sizeof(int64_t));
   int64_t sz = val;
   ptr += sizeof(int64_t);
-  // printf("[Parse] total size = %lld\n", sz);
   assert(sz > 0);
 
   int64_t read_size = 0;
   while (read_size < sz) {
     ptr = ParseElement(err, v, ptr);
     read_size = ptr - p;
-    // printf("read_size = %d, total = %d\n", (int)read_size, (int)sz);
   }
 
   return err.str();
 }
-#endif
 
 }  // namespace eson
+#endif
 
 #endif  // ESON_H_
