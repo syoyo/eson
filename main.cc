@@ -22,10 +22,10 @@ ESONTest()
   eson::Value sval(name);
 
   char bindata[12];
-  for (int i = 0; i < 12; i++) {
-    bindata[i] = i;
+  for (int j = 0; j < 12; j++) {
+    bindata[j] = static_cast<char>(j);
   }
-  eson::Value bval((const uint8_t*)bindata, 12);
+  eson::Value bval(reinterpret_cast<const uint8_t*>(bindata), 12);
 
   eson::Object subO;
   subO["muda"] = vd2;
@@ -40,7 +40,7 @@ ESONTest()
   v = eson::Value(o);
 
   // First calcuate required size for serialized data.
-  int64_t sz = v.Size();
+  int64_t sz = static_cast<int64_t>(v.Size());
 
   uint8_t* buf = new uint8_t[sz]; // or use mmap() if sz is large.
   uint8_t* ptr = &buf[0];
@@ -49,11 +49,11 @@ ESONTest()
   assert((ptr-&buf[0]) == sz);
 
   FILE* fp = fopen("output.eson", "wb");
-  fwrite(buf, 1, sz, fp);
+  fwrite(buf, 1, static_cast<size_t>(sz), fp);
   fclose(fp);
 
   eson::Value ret;
-  std::string err = eson::Parse(ret, (const uint8_t*)buf);
+  std::string err = eson::Parse(ret, static_cast<const uint8_t*>(buf));
   if (!err.empty()) {
     std::cout << "err:" << err << std::endl;
   }
@@ -70,18 +70,18 @@ ESONTest()
   eson::Binary bin = ret.Get("bin").Get<eson::Binary>();
   assert(bin.size == 12);
   printf("bin len = %lld\n", bin.size);
-  for (int i = 0; i < bin.size; i++) {
-    printf("    bin[%d] = %d\n", i, bin.ptr[i]);
+  for (int j = 0; j < bin.size; j++) {
+    printf("    bin[%d] = %d\n", j, bin.ptr[j]);
   } 
 
   if (ret.Get("bin1").IsBinary()) {
     eson::Binary bin1 = ret.Get("bin1").Get<eson::Binary>();
-    printf("bin1.size = %d\n", (int)bin1.size);
+    printf("bin1.size = %d\n", static_cast<int>(bin1.size));
     //assert(bin1.size == 0);
   }
   assert(ret.Get("bin1").IsBinary() == false);
 
-  delete buf;
+  delete [] buf;
 }
 
 int
@@ -89,6 +89,8 @@ main(
   int argc,
   char** argv)
 {
+  (void)argc;
+  (void)argv;
   printf("Testing ESON C++ binding...\n");
   ESONTest();
   printf("Test DONE\n");
