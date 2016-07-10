@@ -69,7 +69,7 @@ ESONTest()
 
   eson::Binary bin = ret.Get("bin").Get<eson::Binary>();
   assert(bin.size == 12);
-  printf("bin len = %lld\n", bin.size);
+  printf("bin len = %ld\n", bin.size);
   for (int j = 0; j < bin.size; j++) {
     printf("    bin[%d] = %d\n", j, bin.ptr[j]);
   } 
