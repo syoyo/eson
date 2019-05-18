@@ -105,7 +105,7 @@ ESONTest()
   printf("bin len = %d\n", bin.size);
   for (int i = 0; i < bin.size; i++) {
     printf("    bin[%d] = %d\n", i, bin.ptr[i]);
-  } 
+  }
 
   delete buf;
 }
@@ -128,9 +128,15 @@ var b = eson.parse(buf);
 console.log(b)
 ```
 
+## Note
+
+### How to handle int16, int32, fp16, float32 data?
+
+Please use BINARY data type.
 
 ## TODO
 
+* [ ] Support Endianness.
 * [ ] Efficiently serialize key table for better search performance.
 * [ ] Make API Zero-Copy to reduce memory.
 * [ ] Add serialize API in JavaScript API.
@@ -138,10 +144,11 @@ console.log(b)
 
 ## Compression
 
-Currently we are planning to use LZ4 or Brotli compression for lossless binary data.
-Lossy compression is also planned. Sengcom seems good idea for lossy compression.
+Currently we are planning to use zstd or LZ4 compression for lossless binary data.
+Lossy compression for floating point data is interesting direction to explore.
+There are zfp an fpzip for lossy floating point compression.
 
-* Wavelet compression for floating point data – Sengcom http://www.unidata.ucar.edu/software/netcdf/papers/sengcom.pdf
+https://computation.llnl.gov/projects/floating-point-compression
 
 ## Author(s)
 
