@@ -42,7 +42,7 @@ ESONTest()
   // First calcuate required size for serialized data.
   int64_t sz = static_cast<int64_t>(v.Size());
 
-  uint8_t* buf = new uint8_t[sz]; // or use mmap() if sz is large.
+  uint8_t* buf = new uint8_t[size_t(sz)]; // or use mmap() if sz is large.
   uint8_t* ptr = &buf[0];
 
   ptr = v.Serialize(ptr);
@@ -72,7 +72,7 @@ ESONTest()
   printf("bin len = %ld\n", bin.size);
   for (int j = 0; j < bin.size; j++) {
     printf("    bin[%d] = %d\n", j, bin.ptr[j]);
-  } 
+  }
 
   if (ret.Get("bin1").IsBinary()) {
     eson::Binary bin1 = ret.Get("bin1").Get<eson::Binary>();

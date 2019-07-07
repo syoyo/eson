@@ -111,7 +111,7 @@ class Value {
     object_ = Object(o);
     size_ = ComputeObjectSize();
   }
-  ~Value() {}
+  //~Value() {}
 
   /// Compute size of array element.
   uint64_t ComputeArraySize() const {
@@ -266,6 +266,7 @@ class Value {
   uint8_t *Serialize(uint8_t *p) const;
 
  private:
+
   static Value null_value();
 };
 
