@@ -157,8 +157,10 @@ https://computation.llnl.gov/projects/floating-point-compression
 
 ## License
 
-ESON C++ API and JavaScript library is licensed under 3-clause BSD license.
+ESON C++ library and JavaScript library is licensed under MIT license.
+ESON python binding is licensed under 3-clause BSD.
 
 ### Third-party licenses
 
+* BSON Python binding. 3-clause BSD.
 * lz4 is licensed under 2-clause BSD license.

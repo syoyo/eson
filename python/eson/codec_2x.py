@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 # ESON codec
-# Copyright (c) 2015
+# Copyright (c) 2015 Light Transport Entertainment Inc.
 #
 # based on BSON python: https://github.com/martinkou/bson
 # Copyright (c) 2010, Kou Man Tong. All rights reserved.
@@ -164,7 +164,7 @@ def encode_value(name, value, buf, traversal_stack, generator_func):
 		buf.write(encode_int64_element(name, value))
 	elif isinstance(value, long):
 		buf.write(encode_int64_element(name, value))
-		
+
 def encode_array(array, traversal_stack,
 		traversal_parent = None,
 		generator_func = None):
