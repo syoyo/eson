@@ -323,7 +323,7 @@ class ESON {
 #include <sstream>
 
 #ifdef _WIN32
-#include <Windows.h>  //  File mapping
+#include <windows.h>  //  File mapping
 #else
 #include <fcntl.h>
 #include <sys/mman.h>
