@@ -8,6 +8,7 @@ C++ and python API is primarily provided.
 
 # Version
 
+* 0.3.3 (Jun 2020)  Deep copy API!
 * 0.3.2 (Nov 2015)  C++ API is now header only!
 * 0.3.1 (Aug 2015)  Initial python2 and python3 binding(no native module compilation required)
 * 0.3.0 (Mar 2015)  Initial support of ARRAY in C/C++ API
@@ -110,6 +111,11 @@ ESONTest()
   delete buf;
 }
 ```
+
+## Limitation
+
+eson just holds pointer to binary data.
+If you want to copy ESON Value with duplicated binary data, please use Deep Copy API.
 
 ## Example in JavaScript(node.js)
 

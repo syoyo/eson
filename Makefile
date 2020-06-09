@@ -1,4 +1,4 @@
-CXXFLAGS= -fsanitize=address -Weverything -Wall -Werror -g -Wall -Werror -O2 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
+CXXFLAGS= -fsanitize=address -std=c++11 -Weverything -Wall -Werror -g -Wall -Werror -O2 -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 CXX=clang++
 AR=ar
 ARFLAGS=rcu
@@ -7,10 +7,10 @@ ARFLAGS=rcu
 
 all: eson_test
 
-main.o: main.cc
+main.o: main.cc eson.h
 	$(CXX) $(CXXFLAGS) -c main.cc
 
-eson_test: main.o
+eson_test: main.o eson.h
 	$(CXX) $(CXXFLAGS) -o eson_test main.o
 
 clean:

@@ -1,7 +1,7 @@
 /*
 MIT License
 
-Copyright (c) 2013-2019 Light Transport Entertainment Inc. and contributors
+Copyright (c) 2013-2020 Light Transport Entertainment Inc. and contributors
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ SOFTWARE.
 
 #include <cassert>
 #include <cstdio>
+#include <cstring>
 #include <cstdlib>
 
 #include <map>
@@ -52,6 +53,8 @@ class Value {
   typedef struct {
     const uint8_t *ptr;
     int64_t size;
+    bool is_external; // true: Do not free `ptr`. false: free `ptr` in destructor.
+    int8_t __pad[7];
   } Binary;
 
   typedef std::vector<Value> Array;
@@ -76,6 +79,15 @@ class Value {
 
  public:
   Value() : type_(NULL_TYPE), dirty_(true) {}
+  Value(const Value &rhs);
+  Value &operator=(const Value &rhs);
+
+  ///
+  /// Deep copy Value object.
+  ///
+  /// allocate binary for BINARY_TYPE data.
+  ///
+  void DeepCopyFrom(const Value &rhs);
 
   explicit Value(bool b) : type_(BOOL_TYPE), dirty_(false) {
     boolean_ = b;
@@ -93,11 +105,17 @@ class Value {
     string_ = std::string(s);
     size_ = string_.size();
   }
-  explicit Value(const uint8_t *p, uint64_t n)
+  explicit Value(const uint8_t *p, uint64_t n, bool is_external = true)
       : type_(BINARY_TYPE), dirty_(false) {
     binary_ = Binary();
-    binary_.ptr = p;  // Just save a pointer.
+    if (is_external) {
+      binary_.ptr = p;  // Just save a pointer.
+    } else {
+      binary_.ptr = new uint8_t[n];
+      memcpy(const_cast<uint8_t *>(binary_.ptr), p, n);
+    }
     binary_.size = static_cast<int64_t>(n);
+    binary_.is_external = is_external;
     size_ = n;
   }
   explicit Value(const Array &a) : type_(ARRAY_TYPE), dirty_(true) {
@@ -108,7 +126,7 @@ class Value {
     object_ = Object(o);
     size_ = ComputeObjectSize();
   }
-  //~Value() {}
+  ~Value();
 
   /// Compute size of array element.
   uint64_t ComputeArraySize() const {
@@ -264,6 +282,8 @@ class Value {
 
  private:
 
+  void Copy_(const Value &rhs, bool is_deep);
+
   static Value null_value();
 };
 
@@ -319,7 +339,6 @@ class ESON {
 #include <cassert>
 #include <cstdio>
 #include <cstdlib>
-#include <cstring>
 #include <sstream>
 
 #ifdef _WIN32
@@ -332,6 +351,73 @@ class ESON {
 #endif
 
 namespace eson {
+
+Value::~Value()
+{
+  if (type_ == BINARY_TYPE) {
+    if (binary_.ptr && (!binary_.is_external)) {
+      delete [] binary_.ptr;
+    }
+  }
+
+}
+
+void Value::Copy_(const Value &rhs, bool is_deep) {
+
+  type_ = rhs.type_;
+  size_ = rhs.size_;
+  dirty_ = rhs.dirty_;
+
+  switch (type_) {
+    case FLOAT64_TYPE: {
+      float64_ = rhs.float64_;
+    } break;
+    case INT64_TYPE: {
+      int64_ = rhs.int64_;
+    } break;
+    case STRING_TYPE: {
+      string_ = rhs.string_;
+    } break;
+    case BINARY_TYPE: {
+      if ((!is_deep) && rhs.binary_.is_external) {
+        // just copy pointer
+        binary_.ptr = rhs.binary_.ptr;
+      } else {
+        memcpy(const_cast<uint8_t *>(binary_.ptr), rhs.binary_.ptr, size_t(rhs.binary_.size));
+      }
+      binary_.size = rhs.binary_.size;
+      binary_.is_external = is_deep ? false : rhs.binary_.is_external;
+    } break;
+    case OBJECT_TYPE: {
+      for (Object::const_iterator it = rhs.object_.begin(); it != rhs.object_.end();
+           ++it) {
+        object_[it->first] = it->second;
+      }
+    } break;
+    case NULL_TYPE: {
+    } break;
+    case BOOL_TYPE: {
+      // @todo
+      assert(0);
+    } break;
+    case ARRAY_TYPE: {
+      // @todo
+      assert(0);
+    } break;
+  }
+}
+
+void DeepCopyFrom(const Value &rhs);
+
+Value::Value(const Value &rhs) {
+  Copy_(rhs, false);
+}
+
+Value &Value::operator=(const Value &rhs) {
+  Copy_(rhs, false);
+
+  return *this;
+}
 
 uint8_t *Value::Serialize(uint8_t *p) const {
   uint8_t *ptr = p;
